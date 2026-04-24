@@ -342,17 +342,25 @@ const AVATAR = "/avatar.png";
 
 const FULL_PORTRAIT = "/portrait.jpg";
 
+/* ─── Persistence ─── */
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
 /* ─── App ─── */
 export default function App() {
   const [tab,setTab] = useState("planner");
   const [sit,setSit] = useState({enemyDistance:"melee",allyNearEnemy:true,enemyCount:"one",hidden:false,hasReaction:true});
-  const [hp,setHp] = useState(28);
-  const [tempHp,setTempHp] = useState(0);
-  const [conds,setConds] = useState([]);
-  const [conc,setConc] = useState("");
+  const [hp,setHp] = useState(()=>load("hp",28));
+  const [tempHp,setTempHp] = useState(()=>load("tempHp",0));
+  const [conds,setConds] = useState(()=>load("conds",[]));
+  const [conc,setConc] = useState(()=>load("conc",""));
   const [plan,setPlan] = useState(null);
-  const [slots,setSlots] = useState({1:3,2:2});
-  const [st,setSt] = useState({inflict:false,invis:false});
+  const [slots,setSlots] = useState(()=>load("slots",{1:3,2:2}));
+  const [st,setSt] = useState(()=>load("st",{inflict:false,invis:false}));
   const [anim,setAnim] = useState(false);
   const [rt,setRt] = useState("action");
   const [st2,setSt2] = useState("cantrips");
@@ -360,7 +368,15 @@ export default function App() {
 
   useEffect(()=>{const l=document.createElement("link");l.href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap";l.rel="stylesheet";document.head.appendChild(l);},[]);
 
-  const [hitDice,setHitDice] = useState(5);
+  const [hitDice,setHitDice] = useState(()=>load("hitDice",5));
+
+  useEffect(()=>save("hp",hp),[hp]);
+  useEffect(()=>save("tempHp",tempHp),[tempHp]);
+  useEffect(()=>save("conds",conds),[conds]);
+  useEffect(()=>save("conc",conc),[conc]);
+  useEffect(()=>save("slots",slots),[slots]);
+  useEffect(()=>save("st",st),[st]);
+  useEffect(()=>save("hitDice",hitDice),[hitDice]);
 
   const doPlan=()=>{setAnim(true);setTimeout(()=>{setPlan(generatePlan(sit,hp,tempHp,conds,conc));setAnim(false);},300);};
   const useSlot=(lv)=>{if(slots[lv]>0)setSlots(s=>({...s,[lv]:s[lv]-1}));};
